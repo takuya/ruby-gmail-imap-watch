@@ -1,0 +1,9 @@
+.bin
+.idea
+Gemfile.lock
+vendor
+.rspec_status
+credentials/*
+!credentials/.gitkeep
+.env
+
