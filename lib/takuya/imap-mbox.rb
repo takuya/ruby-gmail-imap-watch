@@ -1,5 +1,6 @@
 module Takuya
   module ImapMbox
+    protected
     ## select の場合は、容赦なく既読 read(:seen)　にされる
     ## examine の場合は、変更されない。
     # 不安定なので、 BODY.PEEK を使うべき

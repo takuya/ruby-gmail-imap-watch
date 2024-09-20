@@ -13,6 +13,20 @@ module Takuya
     # @type @last_uids [Array<int>]
     @last_uids
 
+    public
+    def on_message_received(&block)
+      bind_event(EV_MESSAGE_RECEIVED, &block)
+    end
+
+    def on_message_deleted(&block)
+      bind_event(EV_MESSAGE_DELETED, &block)
+    end
+
+    def on_message_flagged(&block)
+      bind_event(EV_MESSAGE_FLAGGED, &block)
+    end
+
+    protected
     def map_imap_event_to_message_event
       # @type imap [Net::IMAP]
       # @type res  [Net::IMAP::FetchData]
@@ -48,17 +62,6 @@ module Takuya
 
     end
 
-    def on_message_received(&block)
-      bind_event(EV_MESSAGE_RECEIVED, &block)
-    end
-
-    def on_message_deleted(&block)
-      bind_event(EV_MESSAGE_DELETED, &block)
-    end
-
-    def on_message_flagged(&block)
-      bind_event(EV_MESSAGE_FLAGGED, &block)
-    end
 
   end
 end

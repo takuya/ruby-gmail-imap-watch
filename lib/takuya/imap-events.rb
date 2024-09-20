@@ -8,7 +8,8 @@ module Takuya
     IMAP_EVENT_EXISTS = 0x101
     IMAP_EVENT_FETCH = 0x102
     IMAP_EVENT_EXPUNGE = 0x103
-    @last_uid = []
+
+    public
 
     def on_exists(&block)
       bind_event(IMAP_EVENT_EXISTS, &block)
@@ -22,10 +23,11 @@ module Takuya
       bind_event(IMAP_EVENT_EXPUNGE, &block)
     end
 
+    protected
+
     def map_idle_response_to_imap_event
       untagged_handler = lambda { |res, imap|
         return unless res.kind_of?(Net::IMAP::UntaggedResponse)
-        # binding.pry
         case res.name
           when 'FETCH'
             responses = imap.responses['FETCH']

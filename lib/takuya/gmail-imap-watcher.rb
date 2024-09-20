@@ -11,6 +11,8 @@ require_relative 'imap-watcher'
 
 module Takuya
   class GmailIMAPWatcher<IMAPWatcher
+
+    # @overload initialize()
     def initialize(client_secret_path = nil, token_path = nil, user_id = nil)
 
       client_secret_path ||= ENV['client_secret_path']
@@ -20,14 +22,19 @@ module Takuya
       @token_path ||= token_path
       @user_id ||= user_id
 
-      super(user_id,'','')
+      super(user_id, access_token, 'imap.gmail.com', '993')
     end
 
+    def access_token
+      obj = Takuya::XOAuth2::GMailXOAuth2.new(@client_secret_path, @token_path,@user_id)
+      obj.client_access_token(@user_id)
+    end
+    # @overload start_imap()
     # @return [Net::IMAP]
     def start_imap
-      imap = Takuya::XOAuth2::GMailXOAuth2.imap(@client_secret_path, @token_path, @user_id)
-      imap.noop
-      imap
+      @imap_params[:pass] = access_token
+      @imap_params[:type] = "XOAUTH2"
+      super
     end
 
   end

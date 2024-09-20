@@ -17,9 +17,9 @@ module Takuya
     attr_accessor :imap_idle_timeout
     attr_accessor :err_out
 
-    def initialize(id,pass,server,port=993)
+    def initialize(id,pass,server,port=993,ssl=true)
 
-      @imap_params ={type:"LOGIN", id:id, pass:pass,server:server,port:port}
+      @imap_params ={type:"LOGIN", id:id, pass:pass,server:server,port:port,ssl:ssl}
       if ENV['DEBUG']
         Net::IMAP.debug = true
       end
@@ -100,7 +100,7 @@ module Takuya
 
     # @return [Net::IMAP]
     def start_imap
-      imap = Net::IMAP.new(@imap_params[:server],@imap_params[:port],true)
+      imap = Net::IMAP.new(@imap_params[:server],port:@imap_params[:port],ssl:@imap_params[:ssl])
       imap.authenticate(@imap_params[:type], @imap_params[:id], @imap_params[:pass])
       imap.noop
       imap

@@ -10,9 +10,11 @@ module Takuya
     EV_IMAP_IDLE_LOOP = 0x401
     EV_IMAP_IDLE_DONE = 0x402
 
-    # def map_idle_response_to_idle_event
-    #   bind_event(EV_IMAP_IDLE_LOOP, &imap_idle_response_handler)
-    # end
+    def on_idle_done(&block)
+      bind_event(EV_IMAP_IDLE_DONE,&block)
+    end
+
+    protected
 
     def map_idle_done_to_imap_res_event
       on_idle_done do |res_idle_done, last_idle_response,imap|
@@ -23,9 +25,6 @@ module Takuya
           trigger_event(EV_IMAP_RESPONSE_UNTAGGED, last_idle_response.body, imap)
         end
       end
-    end
-    def on_idle_done(&block)
-      bind_event(EV_IMAP_IDLE_DONE,&block)
     end
 
     def imap_idle_response_handler(holder=nil,imap=nil)
