@@ -54,16 +54,17 @@ module Takuya
     def watch(mbox, &idle_loop_callback)
 
       @mbox = mbox
+      imap = @imap
       bind_event(EV_IMAP_IDLE_LOOP, &idle_loop_callback) if idle_loop_callback
       ## #####################################
       ## imap idle push notification main loop
       ## #####################################
       begin
         while imap.noop.name=='OK'
+          imap.examine(@mbox)
+          @last_uids = get_uids_in_mbox(@mbox)
+          last_response_holder, idle_callback = imap_idle_response_handler
           begin
-            imap.examine(@mbox)
-            @last_uids = get_uids_in_mbox(@mbox)
-            last_response_holder, idle_callback = imap_idle_response_handler
             res_idle_done = imap.idle(@imap_idle_timeout, &idle_callback)
             trigger_event(EV_IMAP_IDLE_DONE, res_idle_done, last_response_holder, imap)
           rescue => ex
