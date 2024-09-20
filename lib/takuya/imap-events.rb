@@ -46,9 +46,7 @@ module Takuya
         end
       }
       unknown_handler = lambda { |res|
-        puts "#### unknown response"
-        p :unknown_response
-        p res
+        raise "Unknown response #{res.raw_data}"
       }
       bind_event(EV_IMAP_RESPONSE_UNTAGGED, &untagged_handler)
       bind_event(EV_IMAP_RESPONSE_CONTINUATION, &idling_handler)

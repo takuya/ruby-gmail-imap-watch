@@ -14,6 +14,7 @@ module Takuya
     @last_uids
 
     public
+
     def on_message_received(&block)
       bind_event(EV_MESSAGE_RECEIVED, &block)
     end
@@ -27,6 +28,7 @@ module Takuya
     end
 
     protected
+
     def map_imap_event_to_message_event
       # @type imap [Net::IMAP]
       # @type res  [Net::IMAP::FetchData]
@@ -56,12 +58,11 @@ module Takuya
         removed_uids = last_uids - current_uids
         ## uid からメールの追跡はできない。
         removed_uids.each { |uid|
-          trigger_event(EV_MESSAGE_DELETED,uid ) if handler_exists(EV_MESSAGE_DELETED)
+          trigger_event(EV_MESSAGE_DELETED, uid) if handler_exists(EV_MESSAGE_DELETED)
         }
       }
 
     end
-
 
   end
 end

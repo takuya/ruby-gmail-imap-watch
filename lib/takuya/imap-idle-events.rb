@@ -11,26 +11,30 @@ module Takuya
     EV_IMAP_IDLE_DONE = 0x402
 
     def on_idle_done(&block)
-      bind_event(EV_IMAP_IDLE_DONE,&block)
+      bind_event(EV_IMAP_IDLE_DONE, &block)
     end
 
     protected
 
     def map_idle_done_to_imap_res_event
-      on_idle_done do |res_idle_done, last_idle_response,imap|
+      on_idle_done do |res_idle_done, last_idle_response, imap|
         unless res_idle_done.raw_data && %w"ok idle terminated success".map { |e| /#{e}/i }.all? { |e| res_idle_done.raw_data=~e }
           raise "UnExpected response #{res_idle_done.raw_data}"
         end
         if last_idle_response.body.kind_of?(Net::IMAP::UntaggedResponse)
           trigger_event(EV_IMAP_RESPONSE_UNTAGGED, last_idle_response.body, imap)
+        else
+          ## Net::IMAP::UntaggedResponse 以外が来るはずがない用に設計した。
+          # Untagged以外の、あり得ないレスポンスが来たらエラーとする。
+          trigger_event(EV_IMAP_RESPONSE_UNKNOWN, last_idle_response.body, imap)
         end
       end
     end
 
-    def imap_idle_response_handler(holder=nil,imap=nil)
+    def imap_idle_response_handler(holder = nil, imap = nil)
       imap ||= @imap
       holder ||= Struct.new(:body).new
-      imap_idle_handler = lambda{|_imap,last_response|
+      imap_idle_handler = lambda { |_imap, last_response|
         unless last_response.respond_to? :body=
           raise "idle受信メッセージを保存するために、ミュータブル・オブジェクトを渡してください"
         end
@@ -45,7 +49,7 @@ module Takuya
           end
         }
       }
-      [holder,imap_idle_handler.call(imap,holder)]
+      [holder, imap_idle_handler.call(imap, holder)]
     end
   end
 end

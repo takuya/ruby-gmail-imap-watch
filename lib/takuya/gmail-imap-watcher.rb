@@ -26,9 +26,10 @@ module Takuya
     end
 
     def access_token
-      obj = Takuya::XOAuth2::GMailXOAuth2.new(@client_secret_path, @token_path,@user_id)
+      obj = Takuya::XOAuth2::GMailXOAuth2.new(@client_secret_path, @token_path, @user_id)
       obj.client_access_token(@user_id)
     end
+
     # @overload start_imap()
     # @return [Net::IMAP]
     def start_imap

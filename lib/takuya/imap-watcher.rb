@@ -17,14 +17,14 @@ module Takuya
     attr_accessor :imap_idle_timeout
     attr_accessor :err_out
 
-    def initialize(id,pass,server,port=993,ssl=true)
+    def initialize(id, pass, server, port = 993, ssl = true)
 
-      @imap_params ={type:"LOGIN", id:id, pass:pass,server:server,port:port,ssl:ssl}
+      @imap_params = { type: "LOGIN", id: id, pass: pass, server: server, port: port, ssl: ssl }
       if ENV['DEBUG']
         Net::IMAP.debug = true
       end
       @max_retry_reconnect = 100
-      @imap_idle_timeout= 300
+      @imap_idle_timeout = 300
       @err_out = $stderr
       ## mapping imap event handlers
       mapping_events
@@ -66,7 +66,7 @@ module Takuya
           end
         end
         p :loop_end
-      rescue OpenSSL::SSL::SSLError, Errno::ECONNRESET , IOError# TCP Connection Error
+      rescue OpenSSL::SSL::SSLError, Errno::ECONNRESET, IOError # TCP Connection Error
         try_reconnect
         retry
       rescue => e
@@ -100,7 +100,7 @@ module Takuya
 
     # @return [Net::IMAP]
     def start_imap
-      imap = Net::IMAP.new(@imap_params[:server],port:@imap_params[:port],ssl:@imap_params[:ssl])
+      imap = Net::IMAP.new(@imap_params[:server], port: @imap_params[:port], ssl: @imap_params[:ssl])
       imap.authenticate(@imap_params[:type], @imap_params[:id], @imap_params[:pass])
       imap.noop
       imap
