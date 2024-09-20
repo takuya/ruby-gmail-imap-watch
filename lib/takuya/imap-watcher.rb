@@ -26,13 +26,15 @@ module Takuya
       @max_retry_reconnect = 100
       @imap_idle_timeout = 300
       @err_out = $stderr
-      ## mapping imap event handlers
-      mapping_events
 
     end
 
     def start(mbox = "INBOX")
-      # connect_imap
+      ## mapping imap event handlers
+      mapping_events
+      # @type [Net::IMAP]
+      @imap = connect_imap
+
       watch(mbox) { |res|
         @err_out.puts res.raw_data
       }
@@ -42,14 +44,17 @@ module Takuya
 
     protected
 
-    def watch(mbox = "INBOX", &idle_loop_callback)
+    def mapping_events
+      ## event handlers
+      map_idle_done_to_imap_res_event
+      map_idle_response_to_imap_event
+      map_imap_event_to_message_event
+    end
 
-      # @type [Net::IMAP]
-      connect_imap
-      imap = @imap
+    def watch(mbox, &idle_loop_callback)
+
       @mbox = mbox
       bind_event(EV_IMAP_IDLE_LOOP, &idle_loop_callback) if idle_loop_callback
-
       ## #####################################
       ## imap idle push notification main loop
       ## #####################################
@@ -65,7 +70,7 @@ module Takuya
             raise ex
           end
         end
-        p :loop_end
+        @err_out.puts :loop_end
       rescue OpenSSL::SSL::SSLError, Errno::ECONNRESET, IOError # TCP Connection Error
         try_reconnect
         retry
@@ -76,13 +81,6 @@ module Takuya
         imap.logout
         imap.disconnect
       end
-    end
-
-    def mapping_events
-      ## event handlers
-      map_idle_done_to_imap_res_event
-      map_idle_response_to_imap_event
-      map_imap_event_to_message_event
     end
 
     def try_reconnect

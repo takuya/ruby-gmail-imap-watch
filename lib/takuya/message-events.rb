@@ -10,7 +10,6 @@ module Takuya
     EV_MESSAGE_RECEIVED = 0x002
     EV_MESSAGE_FLAGGED = 0x003
     EV_MESSAGE_ARCHIVED = 0x004
-    # @type @last_uids [Array<int>]
     @last_uids
 
     public
@@ -31,7 +30,6 @@ module Takuya
 
     def map_imap_event_to_message_event
       # @type imap [Net::IMAP]
-      # @type res  [Net::IMAP::FetchData]
       on_fetch { |res, imap|
         trigger_event(
           EV_MESSAGE_FLAGGED,
