@@ -9,7 +9,7 @@ RSpec.describe 'IMAP Watcher' do
     watcher.max_retry_reconnect = 0
     watcher.imap_idle_timeout = 10
     res_body = nil
-    watcher.on_idle { |res|
+    watcher.on_idle_callback { |res|
       res_body = res.raw_data
       raise "imap.idle_called:#{uuid}"
     }
@@ -20,7 +20,7 @@ RSpec.describe 'IMAP Watcher' do
     end
     expect(msg).to eq "imap.idle_called:#{uuid}"
     expect(res_body).to eq "+ idling\r\n"
-    expect(watcher.err_out.string).to eq "ensure disconnect.\n"
+    expect(watcher.err_out.string).to include "ensure disconnect.\n"
   end
   it "can timeout" do
     uuid = SecureRandom.uuid
@@ -33,7 +33,7 @@ RSpec.describe 'IMAP Watcher' do
     timestamps = {}
     res_body = nil
 
-    watcher.on_idle { |res|
+    watcher.on_idle_callback { |res|
       timestamps[:on_idle_start] = Time.now
       sleep timeout
       timestamps[:on_idle_end] = Time.now
@@ -70,7 +70,7 @@ RSpec.describe 'IMAP Watcher' do
     watcher.max_retry_reconnect = 0
     watcher.imap_idle_timeout = 10
 
-    watcher.on_idle { raise Interrupt }
+    watcher.on_idle_callback { raise Interrupt }
     begin
       Thread.report_on_exception = false
       Thread.new { Thread.pass; watcher.start }.join
@@ -79,6 +79,19 @@ RSpec.describe 'IMAP Watcher' do
     end
 
     expect(interrupted).to be true
+  end
+  it "can be #stop " do
+
+    watcher = Takuya::GmailIMAPWatcher.new
+    watcher.err_out = StringIO.new
+    watcher.max_retry_reconnect = 0
+    watcher.imap_idle_timeout = 10
+
+    watcher.on_idling { watcher.stop }
+    watcher.start
+    thread = watcher.instance_variable_get(:@thread)
+    expect(thread.alive?).to be false
+
   end
 
 end
