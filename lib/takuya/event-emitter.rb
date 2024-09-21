@@ -9,7 +9,7 @@ module Takuya
     end
 
     def trigger_event(ev, *args)
-      return unless @event_handlers[ev]
+      return unless handler_exists(ev)
 
       @event_handlers[ev].map do |listener|
         listener.call(*args)
