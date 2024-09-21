@@ -65,8 +65,11 @@ module Takuya
           @last_uids = get_uids_in_mbox(@mbox)
           last_response_holder, idle_callback = imap_idle_response_handler
           begin
+            ## idle() は例外を握りつぶすので。ミュータブルオブジェクトに保存する。
             res_idle_done = imap.idle(@imap_idle_timeout, &idle_callback)
-            trigger_event(EV_IMAP_IDLE_DONE_CALLED, res_idle_done, last_response_holder, imap)
+            raise last_response_holder.exception if (last_response_holder.exception)
+            ##
+            trigger_event(EV_IMAP_IDLE_DONE_CALLED, res_idle_done, last_response_holder.response, imap)
           rescue => ex
             raise ex
           end
