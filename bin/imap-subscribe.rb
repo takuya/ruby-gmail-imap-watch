@@ -31,5 +31,12 @@ watcher.on_message_received do |mail|
   puts "############ new message delivered."
   puts mail.message_id
 end
-watcher.start
+begin
+  t = Thread.new { watcher.start }
+  t.join
+rescue Interrupt => e
+  t.raise(Interrupt)
+end
+
+
 

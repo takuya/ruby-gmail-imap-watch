@@ -78,9 +78,9 @@ module Takuya
       rescue => e
         raise e
       ensure
-        @err_out.puts "ensure logout."
-        imap.logout
-        imap.disconnect
+        @err_out.puts "ensure disconnect."
+        ## logout するとおかしくなる。
+        imap.disconnect unless imap.disconnected?
       end
     end
 
