@@ -26,6 +26,8 @@ module Takuya
       @max_retry_reconnect = 100
       @imap_idle_timeout = 300
       @err_out = $stderr
+      ## mapping imap event handlers
+      mapping_events
 
     end
 
@@ -34,25 +36,30 @@ module Takuya
     end
 
     def stop
-      @thread.raise(Interrupt) if @thread
+      @thread.raise "Force stop" if @thread
+    end
+    def thread
+      @thread
     end
 
-    protected
-
     def start_thread(mbox = "INBOX")
-      ## mapping imap event handlers
-      mapping_events
       ## connect
       @imap = connect_imap
       ## start watch
-      @thread = Thread.new{
+      thread = Thread.new {
         Thread.pass
-        watch(mbox) { |res|
-          @err_out.puts res.raw_data
-        }
+        begin
+          watch_mbox(mbox) { |res|
+            @err_out.puts res.raw_data
+          }
+        rescue RuntimeError => e
+          raise e unless e.message=='Force stop'
+        end
       }
-
+      @thread = thread
     end
+
+    protected
 
     def mapping_events
       ## event handlers
@@ -61,11 +68,11 @@ module Takuya
       map_imap_event_to_message_event
     end
 
-    def watch(mbox, &idle_loop_callback)
+    def watch_mbox(mbox, &idle_loop_callback)
 
       @mbox = mbox
       imap = @imap
-      bind_event(EV_IMAP_IDLE_LOOP, &idle_loop_callback) if idle_loop_callback
+      bind_event(EV_IMAP_IDLE_CALLBACK_LOOP, &idle_loop_callback) if idle_loop_callback
       ## #####################################
       ## imap idle push notification main loop
       ## #####################################

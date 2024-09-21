@@ -40,9 +40,9 @@ module Takuya
             raise "UnKnown name #{res.name}"
         end
       }
-      idling_handler = lambda { |res|
+      idling_handler = lambda { |res,imap|
         if res.kind_of?(Net::IMAP::ContinuationRequest) && res.data.text=="idling"
-          p :imap_is_idling
+          @err_out.puts res.raw_data
         end
       }
       unknown_handler = lambda { |last_res,imap|

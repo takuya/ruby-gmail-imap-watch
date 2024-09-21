@@ -7,15 +7,18 @@ module Takuya
     EV_IMAP_RESPONSE_UNTAGGED = 0x301
     EV_IMAP_RESPONSE_CONTINUATION = 0x302
     EV_IMAP_RESPONSE_UNKNOWN = 0x303
-    EV_IMAP_IDLE_LOOP = 0x401
+    EV_IMAP_IDLE_CALLBACK_LOOP = 0x401
     EV_IMAP_IDLE_DONE_CALLED = 0x402
     EV_IMAP_IDLE_TERMINATED_IN_SUCCESS = 0x403
 
     def on_idle_done(&block)
       bind_event(EV_IMAP_IDLE_DONE_CALLED, &block)
     end
-    def on_idle(&block)
-      bind_event(EV_IMAP_IDLE_LOOP, &block)
+    def on_idle_callback(&block)
+      bind_event(EV_IMAP_IDLE_CALLBACK_LOOP, &block)
+    end
+    def on_idling(&block)
+      bind_event(EV_IMAP_RESPONSE_CONTINUATION, &block)
     end
 
     protected
@@ -49,7 +52,7 @@ module Takuya
         end
         lambda { |res|
           begin
-            trigger_event(EV_IMAP_IDLE_LOOP, res)
+            trigger_event(EV_IMAP_IDLE_CALLBACK_LOOP, res)
           rescue Interrupt => ex
             ## interrupt は明示してキャッチする必要がある。
             imap.idle_done
