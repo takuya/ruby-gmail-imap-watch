@@ -50,6 +50,10 @@ module Takuya
         lambda { |res|
           begin
             trigger_event(EV_IMAP_IDLE_LOOP, res)
+          rescue Interrupt => ex
+            ## interrupt は明示してキャッチする必要がある。
+            imap.idle_done
+            last_response.exception=ex
           rescue => e
             imap.idle_done
             last_response.exception=e

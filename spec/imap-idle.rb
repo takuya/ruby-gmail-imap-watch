@@ -1,7 +1,8 @@
 RSpec.describe 'IMAP Watcher' do
   ENV.delete 'DEBUG'
+  Thread.report_on_exception = false
 
-  it "can become idle successfully and  catch Exception successfully" do
+  it "can become idle successfully and catch Exception successfully" do
     uuid = SecureRandom.uuid
     watcher = Takuya::GmailIMAPWatcher.new
     watcher.err_out = StringIO.new
@@ -38,7 +39,7 @@ RSpec.describe 'IMAP Watcher' do
       timestamps[:on_idle_end] = Time.now
     }
     watcher.on_idle_done { |res|
-      raise "Something strange be occurred." unless res.data.text == "IDLE terminated (Success)"
+      raise "Something strange be occurred." unless res.data.text=="IDLE terminated (Success)"
       res_body = res.data.text
       timestamps[:on_idle_done_start] = Time.now
       raise uuid
@@ -55,12 +56,29 @@ RSpec.describe 'IMAP Watcher' do
     expect(ex.class).to eq RuntimeError
     expect(ex.message).to eq uuid
     expect(res_body).to eq "IDLE terminated (Success)"
-    expect( timestamps[:on_idle_end] - timestamps[:on_idle_start] >= 1 ).to be true
-    expect( timestamps[:on_idle_end] - timestamps[:on_idle_start] < 2 ).to be true
-    expect( timestamps[:on_idle_done_start] - timestamps[:on_idle_end] > 0 ).to be true
-    expect( timestamps[:on_idle_done_start] - timestamps[:on_idle_end] < 2 ).to be true
+    expect(timestamps[:on_idle_end] - timestamps[:on_idle_start]>=1).to be true
+    expect(timestamps[:on_idle_end] - timestamps[:on_idle_start]<2).to be true
+    expect(timestamps[:on_idle_done_start] - timestamps[:on_idle_end]>0).to be true
+    expect(timestamps[:on_idle_done_start] - timestamps[:on_idle_end]<2).to be true
 
+  end
+  it "can be Interrupted " do
+    ENV.delete 'DEBUG'
 
+    watcher = Takuya::GmailIMAPWatcher.new
+    watcher.err_out = StringIO.new
+    watcher.max_retry_reconnect = 0
+    watcher.imap_idle_timeout = 10
+
+    watcher.on_idle { raise Interrupt }
+    begin
+      Thread.report_on_exception = false
+      Thread.new { Thread.pass; watcher.start }.join
+    rescue Interrupt
+      interrupted = true
+    end
+
+    expect(interrupted).to be true
   end
 
 end

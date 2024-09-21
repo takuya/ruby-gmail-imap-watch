@@ -30,19 +30,29 @@ module Takuya
     end
 
     def start(mbox = "INBOX")
-      ## mapping imap event handlers
-      mapping_events
-      # @type [Net::IMAP]
-      @imap = connect_imap
+      start_thread(mbox).join()
+    end
 
-      watch(mbox) { |res|
-        @err_out.puts res.raw_data
-      }
-    rescue Interrupt => e
-      @err_out.puts :Interrupted
+    def stop
+      @thread.raise(Interrupt) if @thread
     end
 
     protected
+
+    def start_thread(mbox = "INBOX")
+      ## mapping imap event handlers
+      mapping_events
+      ## connect
+      @imap = connect_imap
+      ## start watch
+      @thread = Thread.new{
+        Thread.pass
+        watch(mbox) { |res|
+          @err_out.puts res.raw_data
+        }
+      }
+
+    end
 
     def mapping_events
       ## event handlers
