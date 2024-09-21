@@ -45,8 +45,8 @@ module Takuya
           p :imap_is_idling
         end
       }
-      unknown_handler = lambda { |res|
-        raise "Unknown response #{res.raw_data}"
+      unknown_handler = lambda { |last_res,imap|
+        raise "Unknown response #{res.raw_data} "
       }
       bind_event(EV_IMAP_RESPONSE_UNTAGGED, &untagged_handler)
       bind_event(EV_IMAP_RESPONSE_CONTINUATION, &idling_handler)

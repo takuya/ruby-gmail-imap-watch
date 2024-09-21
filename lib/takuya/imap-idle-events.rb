@@ -8,10 +8,14 @@ module Takuya
     EV_IMAP_RESPONSE_CONTINUATION = 0x302
     EV_IMAP_RESPONSE_UNKNOWN = 0x303
     EV_IMAP_IDLE_LOOP = 0x401
-    EV_IMAP_IDLE_DONE = 0x402
+    EV_IMAP_IDLE_DONE_CALLED = 0x402
+    EV_IMAP_IDLE_TERMINATED_IN_SUCCESS = 0x403
 
     def on_idle_done(&block)
-      bind_event(EV_IMAP_IDLE_DONE, &block)
+      bind_event(EV_IMAP_IDLE_DONE_CALLED, &block)
+    end
+    def on_idle(&block)
+      bind_event(EV_IMAP_IDLE_LOOP, &block)
     end
 
     protected
@@ -21,8 +25,13 @@ module Takuya
         unless res_idle_done.raw_data && %w"ok idle terminated success".map { |e| /#{e}/i }.all? { |e| res_idle_done.raw_data=~e }
           raise "UnExpected response #{res_idle_done.raw_data}"
         end
+
         if last_idle_response.body.kind_of?(Net::IMAP::UntaggedResponse)
           trigger_event(EV_IMAP_RESPONSE_UNTAGGED, last_idle_response.body, imap)
+        elsif last_idle_response.body.nil? &&
+          res_idle_done.raw_data &&
+          %w"ok idle terminated success".map { |e| /#{e}/i }.all? { |e| res_idle_done.raw_data=~e }
+          trigger_event(EV_IMAP_IDLE_TERMINATED_IN_SUCCESS,res_idle_done, imap)
         else
           ## Net::IMAP::UntaggedResponse 以外が来るはずがない用に設計した。
           # Untagged以外の、あり得ないレスポンスが来たらエラーとする。

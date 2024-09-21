@@ -66,7 +66,7 @@ module Takuya
           last_response_holder, idle_callback = imap_idle_response_handler
           begin
             res_idle_done = imap.idle(@imap_idle_timeout, &idle_callback)
-            trigger_event(EV_IMAP_IDLE_DONE, res_idle_done, last_response_holder, imap)
+            trigger_event(EV_IMAP_IDLE_DONE_CALLED, res_idle_done, last_response_holder, imap)
           rescue => ex
             raise ex
           end
