@@ -30,7 +30,7 @@ module Takuya
     end
 
     def start(mbox = "INBOX")
-      start_thread(mbox).join()
+      start_thread(mbox).join
     end
 
     def stop
