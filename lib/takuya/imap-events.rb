@@ -45,7 +45,7 @@ module Takuya
       }
       idling_handler = lambda { |res,imap|
         if res.kind_of?(Net::IMAP::ContinuationRequest) && res.data.text=="idling"
-          @err_out.puts res.raw_data
+          # @err_out.puts res.raw_data
         end
       }
       unknown_handler = lambda { |last_res,imap|
