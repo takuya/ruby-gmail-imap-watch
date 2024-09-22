@@ -47,7 +47,7 @@ module Takuya
         }
         ## uid からメールの追跡はできない。
         removed_uids = last_uids - current_uids
-        removed_uids.each { |uid| trigger_event(EV_MESSAGE_ARCHIVED, uid)  }
+        removed_uids.each { |uid| trigger_event(EV_MESSAGE_ARCHIVED, uid) }
       }
 
       on_expunge { |res, imap|

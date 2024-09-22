@@ -8,7 +8,8 @@ module Takuya
       @event_handlers[ev] ||= []
       @event_handlers[ev] << block
     end
-    def unbind_event(ev,&block)
+
+    def unbind_event(ev, &block)
       return unless @event_handlers && @event_handlers[ev]
       @event_handlers[ev].delete(block)
     end

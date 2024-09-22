@@ -33,8 +33,8 @@ module Takuya
             responses = imap.responses['FETCH']
             responses.each { |response| trigger_event(IMAP_EVENT_FETCH, response, imap) }
           when 'EXISTS'
-            if imap.responses['EXPUNGE'].size > 0 &&
-              imap.responses['EXISTS'].size > 0
+            if imap.responses['EXPUNGE'].size>0 &&
+              imap.responses['EXISTS'].size>0
               trigger_event(IMAP_EVENT_EXPUNGE, last_res, imap)
             else
               trigger_event(IMAP_EVENT_EXISTS, last_res, imap)
@@ -43,12 +43,12 @@ module Takuya
             raise "UnKnown name #{last_res.name}"
         end
       }
-      idling_handler = lambda { |res,imap|
+      idling_handler = lambda { |res, imap|
         if res.kind_of?(Net::IMAP::ContinuationRequest) && res.data.text=="idling"
           # @err_out.puts res.raw_data
         end
       }
-      unknown_handler = lambda { |last_res,imap|
+      unknown_handler = lambda { |last_res, imap|
         raise "Unknown response #{res.raw_data} "
       }
       bind_event(EV_IMAP_RESPONSE_UNTAGGED, &untagged_handler)
