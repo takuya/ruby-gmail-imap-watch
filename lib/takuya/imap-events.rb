@@ -26,18 +26,21 @@ module Takuya
     protected
 
     def map_idle_response_to_imap_event
-      untagged_handler = lambda { |res, imap|
-        return unless res.kind_of?(Net::IMAP::UntaggedResponse)
-        case res.name
+      untagged_handler = lambda { |last_res, imap|
+        return unless last_res.kind_of?(Net::IMAP::UntaggedResponse)
+        case last_res.name
           when 'FETCH'
             responses = imap.responses['FETCH']
             responses.each { |response| trigger_event(IMAP_EVENT_FETCH, response, imap) }
           when 'EXISTS'
-            trigger_event(IMAP_EVENT_EXISTS, res, imap)
-          when 'EXPUNGE'
-            trigger_event(IMAP_EVENT_EXPUNGE, res, imap)
+            if imap.responses['EXPUNGE'].size > 0 &&
+              imap.responses['EXISTS'].size > 0
+              trigger_event(IMAP_EVENT_EXPUNGE, last_res, imap)
+            else
+              trigger_event(IMAP_EVENT_EXISTS, last_res, imap)
+            end
           else
-            raise "UnKnown name #{res.name}"
+            raise "UnKnown name #{last_res.name}"
         end
       }
       idling_handler = lambda { |res,imap|
