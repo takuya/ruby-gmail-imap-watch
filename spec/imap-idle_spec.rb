@@ -1,4 +1,4 @@
-RSpec.describe 'IMAP Watcher' do
+RSpec.describe 'IMAP Watcher start/stop' do
   ENV.delete 'DEBUG'
   Thread.report_on_exception = false
 

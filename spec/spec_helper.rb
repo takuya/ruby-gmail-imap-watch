@@ -28,22 +28,81 @@ RSpec.configure do |config|
   # ENV["DEBUG"] = '1'
   # Thread.abort_on_exception = true
 
-  #
-  # def append_mail(uuid)
-  #   imap = Takuya::XOAuth2::GMailXOAuth2.imap(client_secret_path,token_path,user_id)
-  #   imap.select('INBOX')
-  #   message = <<~MESSAGE_END
-  #     From: sender@example.com
-  #     To: your_email@example.com
-  #     Subject: Test Message
-  #     Date: #{Time.now.rfc2822}
-  #     Message-ID: <#{uuid}>
-  #
-  #     This is a test message.
-  #   MESSAGE_END
-  #   imap.append('INBOX', message, nil, Time.now)
-  #   imap.logout
-  #   imap.disconnect
-  # end
+  def mbox_attrs(imap)
+    imap.list('', '*').map(&:attr).flatten.uniq.sort
+  end
+  def find_mbox_name(imap,key=:Trash)
+    imap.list('', '*').find { |e| e.attr.include?(key) }.name
+  end
+  def list_subject_in_mbox(imap,mbox='INBOX')
+    mbox = find_mbox_name(imap,mbox) if mbox.is_a? Symbol
+    imap.select(mbox)
+    seq_numbers = imap.search(['ALL'])
+    seq_numbers.map do |seq_num|
+      # シーケンス番号でメールのヘッダー情報を取得
+      envelope = imap.fetch(seq_num, "ENVELOPE")[0].attr["ENVELOPE"]
+      envelope.subject
+    end
+  end
+  # @param imap [Net::IMAP]
+  def list_subjects_in_trash(imap)
+    list_subject_in_mbox(imap,:Trash)
+  end
 
+  # @return imap [Net::IMAP]
+  def imap_connect
+    client_secret_path ||= ENV['client_secret_path']
+    token_path ||= ENV['token_path']
+    user_id ||= ENV['user_id']
+    Net::IMAP.debug = true if ENV['DEBUG']
+    imap = Takuya::XOAuth2::GMailXOAuth2.imap(client_secret_path, token_path, user_id)
+  end
+  def append_mail(imap,uuid=nil,mbox="INBOX")
+    uuid = SecureRandom.uuid unless uuid
+    # メッセージを追加する受信トレイを選択
+    imap.select(mbox)
+    # メッセージを構築
+    message = <<~MESSAGE_END
+      From: sender@example.com
+      To: your_email@example.com
+      Subject: Test Message #{uuid}
+      Date: #{Time.now.rfc2822}
+      Message-ID: <#{uuid}.example.mail>
+
+      This is a test message.
+    MESSAGE_END
+    # メッセージを受信トレイに追加
+    imap.append(mbox, message, nil, Time.now)
+
+    ## 追加したメッセージを確認
+    query = ['SUBJECT', uuid]
+    raise unless mail_exists?(imap,query,mbox)
+    query
+  end
+  def mail_exists?(imap,query,mbox="INBOX")
+    imap.select(mbox)
+    message_ids = imap.search(query)
+    ! message_ids.empty?
+  end
+  def delete_mail(imap,uuid,mbox="INBOX")
+    query = ['SUBJECT', uuid]
+    trash_name = find_mbox_name(imap,:Trash)
+    raise unless mail_exists?(imap,query)
+    ##
+    imap.select(mbox)
+    message_ids = imap.search(query)
+    message_ids.each do |m_id|
+      imap.store(m_id, "+FLAGS", [:Seen])
+      imap.store(m_id, "+FLAGS", [:Deleted])
+      imap.copy(m_id, trash_name)
+      imap.expunge
+    end
+
+    raise if mail_exists?(imap,query)
+    raise unless mail_exists?(imap,query,trash_name)
+
+    true
+
+  end
 end
+
