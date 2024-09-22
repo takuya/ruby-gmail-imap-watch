@@ -34,7 +34,7 @@ watcher.on_message_received do |mail|
   puts mail.message_id
 end
 
-## start polling
+## start listening
 watcher.start
 
 ```
