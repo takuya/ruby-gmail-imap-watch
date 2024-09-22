@@ -3,9 +3,14 @@ require 'mail'
 module Takuya
   module EventEmitter
     def bind_event(ev, &block)
+      raise if block.nil?
       @event_handlers ||= {}
       @event_handlers[ev] ||= []
       @event_handlers[ev] << block
+    end
+    def unbind_event(ev,&block)
+      return unless @event_handlers && @event_handlers[ev]
+      @event_handlers[ev].delete(block)
     end
 
     def trigger_event(ev, *args)

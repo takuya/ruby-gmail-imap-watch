@@ -91,7 +91,6 @@ RSpec.describe 'IMAP Watcher' do
     watcher.start
     thread = watcher.instance_variable_get(:@thread)
     expect(thread.alive?).to be false
-
   end
 
 end
