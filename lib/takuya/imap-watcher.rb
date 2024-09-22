@@ -17,6 +17,9 @@ module Takuya
     attr_accessor :imap_idle_timeout
     attr_accessor :err_out
 
+    WATCHER_STARTED = 0x501
+    WATCHER_STOPPED = 0x502
+
     def initialize(id, pass, server, port = 993, ssl = true)
 
       @imap_params = { type: "LOGIN", id: id, pass: pass, server: server, port: port, ssl: ssl }
@@ -38,6 +41,7 @@ module Takuya
     def stop
       @thread.raise "Force stop" if @thread
     end
+
     def thread
       @thread
     end
@@ -49,17 +53,36 @@ module Takuya
       thread = Thread.new {
         Thread.pass
         begin
-          watch_mbox(mbox) { |res|
-            @err_out.puts res.raw_data
-          }
+          on_start_binding(WATCHER_STARTED)
+          watch_mbox(mbox) { |res| @err_out.puts res.raw_data }
         rescue RuntimeError => e
           raise e unless e.message=='Force stop'
+          trigger_event(WATCHER_STOPPED)
         end
       }
       @thread = thread
     end
 
+    def on_watch_start(&callback)
+      bind_event(WATCHER_STARTED, &callback)
+    end
+
+    def on_watch_stopped(&callback)
+      bind_event(WATCHER_STOPPED, &callback)
+    end
+
     protected
+
+    def on_start_binding(ev)
+      Proc.new {
+        on_start_is_already_called = false
+        on_idling {
+          return if on_start_is_already_called
+          trigger_event(ev)
+          on_start_is_already_called = true
+        }
+      }.call
+    end
 
     def mapping_events
       ## event handlers
