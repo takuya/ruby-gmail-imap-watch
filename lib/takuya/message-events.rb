@@ -43,11 +43,11 @@ module Takuya
         last_uids = @last_uids.uids
         received_uid = current_uids - last_uids
         received_uid.each { |uid|
-          trigger_event(EV_MESSAGE_RECEIVED, get_message(uid, imap, @mbox)) if handler_exists(EV_MESSAGE_RECEIVED)
+          trigger_event(EV_MESSAGE_RECEIVED, get_message(uid, imap, @mbox))
         }
         ## uid からメールの追跡はできない。
         removed_uids = last_uids - current_uids
-        removed_uids.each { |uid| trigger_event(EV_MESSAGE_ARCHIVED, uid) if handler_exists(EV_MESSAGE_ARCHIVED) }
+        removed_uids.each { |uid| trigger_event(EV_MESSAGE_ARCHIVED, uid)  }
       }
 
       on_expunge { |res, imap|
@@ -56,7 +56,7 @@ module Takuya
         removed_uids = last_uids - current_uids
         ## uid からメールの追跡はできない。
         removed_uids.each { |uid|
-          trigger_event(EV_MESSAGE_DELETED, uid) if handler_exists(EV_MESSAGE_DELETED)
+          trigger_event(EV_MESSAGE_DELETED, uid)
         }
       }
 
