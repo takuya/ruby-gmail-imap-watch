@@ -19,11 +19,25 @@ RSpec.configure do |config|
 
   config.raise_errors_for_deprecations!
   Dotenv.load('.env', '.env.sample')
-  ENV['client_secret_path'] = File.realpath ENV['client_secret_path']
-  ENV['token_path'] = File.realpath ENV['token_path']
   ENV['user_id'] = ENV['user_id'].strip
   ##
+  unless File.exist?(ENV['token_path']) || File.exist?(ENV['client_secret_path'])
+    ## try to decrypt
+    raise 'no password.' if ENV['openssl_enc_pass'].empty?
+    require 'openssl/utils'
+    [ENV['token_path'], ENV['client_secret_path']].each{|out_file |
+      enc_file=out_file+".enc"
+      iter_cnt =1000 * 1000
+      OpenSSLEncryption.decrypt_by_ruby(
+        passphrase: ENV['openssl_enc_pass'],
+        file_enc: enc_file, file_out: out_file, iterations: iter_cnt,
+        base64:true
+      )
+    }
+  end
   raise "Empty file (#{ENV['token_path']})." unless YAML.load_file(ENV['token_path'])
+  ENV['client_secret_path'] = File.realpath ENV['client_secret_path']
+  ENV['token_path'] = File.realpath ENV['token_path']
   ENV['user_id'] = YAML.load_file(ENV['token_path']).keys[0] if ENV['user_id'].empty?
   # ENV["DEBUG"] = '1'
   # Thread.abort_on_exception = true

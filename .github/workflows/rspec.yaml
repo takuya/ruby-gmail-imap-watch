@@ -1,0 +1,47 @@
+name: "rspec spec/"
+
+on:
+  push:
+    branch:
+      - master
+    paths:
+      - 'lib/**'
+      - 'spec/**'
+      - '.github/workflows/rspec.yaml'
+  schedule:
+    - cron: '0 11 */4 * *'
+
+jobs:
+  test-modify-mutipage-Tiff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 環境変数から暗号化ファイルの鍵を取り出し。
+        run: |
+          pwd
+          echo 環境変数のメモ
+          echo expected variables
+          echo Google-GCP-OAUTH2-client
+          echo "---------------------------"
+          echo "--- client_secret"
+          echo "---------------------------"
+          echo "OPENSSL_ENC_PASS=${{ secrets.OPENSSL_ENC_PASS }}"
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: false
+          ruby-version: 3.1
+      - name: rspecテスト
+        run: |
+          bundle install
+          bundle
+          export openssl_enc_pass="${{ secrets.SPEC_ENC_KEY }}"
+          bundle exec rspec spec/
+      - name: Write a log.
+        run:
+          date -I > last-tested.txt
+      - name: push updated lists
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: update tested date.
+          file_pattern: last-tested.txt
+          create_branch: false

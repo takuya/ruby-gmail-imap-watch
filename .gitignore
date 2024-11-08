@@ -4,6 +4,7 @@ Gemfile.lock
 vendor
 .rspec_status
 credentials/*
-!credentials/.gitkeep
+!credentials/client_secret.json.enc
+!credentials/tokens.yaml.enc
 .env
 
