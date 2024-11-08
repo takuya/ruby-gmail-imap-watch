@@ -34,7 +34,7 @@ jobs:
         run: |
           bundle install
           bundle
-          export openssl_enc_pass="${{ secrets.SPEC_ENC_KEY }}"
+          export openssl_enc_pass="${{ secrets.OPENSSL_ENC_PASS }}"
           echo openssl_enc_pass=$openssl_enc_pass
           bundle exec rspec spec/
       - name: Write a log.
